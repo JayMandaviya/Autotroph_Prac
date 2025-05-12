@@ -1,0 +1,28 @@
+const request = require('supertest');
+const app = require('../app');
+
+describe('Wallet Microservice', () => {
+  let sessionId;
+
+  beforeAll(async () => {
+    const res = await request(app).post('/session/start').send({ userId: 'user1' });
+    sessionId = res.body.sessionId;
+  });
+
+  it('should credit the wallet', async () => {
+    const res = await request(app)
+      .post('/wallet/credit')
+      .set('x-session-id', sessionId)
+      .send({ amount: 100 });
+
+    expect(res.body.message).toBe('Credited successfully');
+  });
+
+  it('should return the balance', async () => {
+    const res = await request(app)
+      .get('/wallet/balance')
+      .set('x-session-id', sessionId);
+
+    expect(res.body.balance).toBe(100);
+  });
+});
